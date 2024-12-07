@@ -13,13 +13,15 @@ import javax.swing.JOptionPane;
  * @author prant
  */
 public class ViewTeacherDetail extends javax.swing.JFrame {
+
     Connection conn;
     PreparedStatement pst;
-    
+
     public String TeacherID = AdminHomePage.getData_TeacherID();
     private String TeacherName = AdminHomePage.getData_TeacherName();
     private String TeacherEmail = AdminHomePage.getData_TeacherEmail();
     private String TeacherPhone = AdminHomePage.getData_TeacherPhone();
+
     /**
      * Creates new form ViewTeacherDetail
      */
@@ -30,7 +32,7 @@ public class ViewTeacherDetail extends javax.swing.JFrame {
         jTextField2.setText(TeacherName);
         jTextField3.setText(TeacherEmail);
         jTextField4.setText(TeacherPhone);
-        
+
         jTextField1.setEditable(false);
         jTextField2.setEditable(false);
         jTextField3.setEditable(false);
@@ -258,20 +260,30 @@ public class ViewTeacherDetail extends javax.swing.JFrame {
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
 
         try {
+            Mailer obj = new Mailer();
+            final String from = "prantochandra.csecu@gmail.com";
+            final String password = "vvkr uagd vjxg jprk";
 
             Date jdate = jDateChooser1.getDate();
             String salary = jTextField5.getText();
 
             String sql = "UPDATE Teacher\n"
-            + "SET status = 'active', joining_date = ?, salary = ?\n"
-            + "WHERE teacher_id = ?;";
+                    + "SET status = 'active', joining_date = ?, salary = ?\n"
+                    + "WHERE teacher_id = ?;";
             pst = conn.prepareStatement(sql);
             java.sql.Date sqljd = new java.sql.Date(jdate.getTime());
             pst.setDate(1, sqljd);
             pst.setString(2, salary);
             pst.setString(3, TeacherID);
-            pst.execute();
-            JOptionPane.showMessageDialog(null, "Approved Successfully");
+            int rowsAffected = pst.executeUpdate();
+            if (rowsAffected > 0) {
+                String to = TeacherEmail;
+                String sub = "Application Approved";
+                String msg = "Welcome to our Family.\nYou are now a respected Teacher of our community.\n";
+                obj.send(from, password, to, sub, msg);
+                JOptionPane.showMessageDialog(null, "Approved Successfully");
+            }
+
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, e);
         }
@@ -285,7 +297,7 @@ public class ViewTeacherDetail extends javax.swing.JFrame {
         // TODO add your handling code here:
         try {
             String sql = "DELETE FROM user\n"
-            + "WHERE email = ?;";
+                    + "WHERE email = ?;";
             pst = conn.prepareStatement(sql);
             pst.setString(1, TeacherEmail);
             pst.execute();

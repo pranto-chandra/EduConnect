@@ -21,14 +21,15 @@ public class Payment extends javax.swing.JFrame {
     public String Courseid = StudentHomePage.getData_courseid();
     private String Coursename = StudentHomePage.getData_coursename();
     private double Coursefee = StudentHomePage.getData_coursefee();
-    
+    public String email = StudentHomePage.getData_email();
+
     private static double pay;
     private static double due;
-    
+
     public static double getData_paid() {
         return pay;
     }
-    
+
     public static double getData_due() {
         return due;
     }
@@ -287,6 +288,10 @@ public class Payment extends javax.swing.JFrame {
         pay = Double.parseDouble(jTextField5.getText());
         due = Double.parseDouble(jTextField6.getText());
         try {
+            Mailer obj = new Mailer();
+            final String from = "prantochandra.csecu@gmail.com";
+            final String password = "vvkr uagd vjxg jprk";
+
             String sql = "INSERT INTO Payment (madeBy, requiredFor, total_amount, amount_paid, due_amount) VALUES (?,?,?,?,?)";
             pst = conn.prepareStatement(sql);
             pst.setInt(1, Integer.parseInt(Studentid));
@@ -295,24 +300,36 @@ public class Payment extends javax.swing.JFrame {
             pst.setDouble(4, pay);
             pst.setDouble(5, due);
             
-            pst.execute();
-            
-            JOptionPane.showMessageDialog(null, "Payment Successful");
-            
-            String TakeEntry = "INSERT INTO Takes (student_id, course_id) VALUES (?,?)";
-            pst = conn.prepareStatement(TakeEntry);
-            pst.setInt(1, Integer.parseInt(Studentid));
-            pst.setInt(2, Integer.parseInt(Courseid));
-            
-            pst.execute();
-            
-            JOptionPane.showMessageDialog(null, "Course Enrolled");
-            
-            StudentHomePage studenthome = new StudentHomePage();
-            studenthome.setVisible(true);
-            this.dispose();
+            int rowsAffected = pst.executeUpdate();
+            if (rowsAffected>0) {
+//                JOptionPane.showMessageDialog(null, email);
+                JOptionPane.showMessageDialog(null, "Payment Successful");
+
+                String TakeEntry = "INSERT INTO Takes (student_id, course_id) VALUES (?,?)";
+                pst = conn.prepareStatement(TakeEntry);
+                pst.setInt(1, Integer.parseInt(Studentid));
+                pst.setInt(2, Integer.parseInt(Courseid));
                 
-        } catch(Exception e) {
+                rowsAffected = pst.executeUpdate();
+                if (rowsAffected>0) {
+                    String to = email;
+                    String sub = "Course Enrollment Confirmation";
+                    String msg = "You Just Enrolled the course " + Coursename + "\n You Paid amount " + pay + " Taka.\n Your Due amount is" + due + "Taka.\n";
+                    obj.send(from, password, to, sub, msg);
+
+                    JOptionPane.showMessageDialog(null, "Course Enrolled");
+
+                    StudentHomePage studenthome = new StudentHomePage();
+                    studenthome.setVisible(true);
+                    this.dispose();
+                } else {
+                    JOptionPane.showMessageDialog(null, "get error1");
+                }
+            } else {
+                JOptionPane.showMessageDialog(null, "get error2");
+            }
+
+        } catch (Exception e) {
             JOptionPane.showMessageDialog(null, e);
         }
     }//GEN-LAST:event_jButton3ActionPerformed
